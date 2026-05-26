@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase';
-import { Plus, Edit, Trash2, Pin, PinOff } from 'lucide-react';
+import { Plus, Edit, Trash2, Pin, PinOff, Calendar, Eye } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
 
@@ -15,7 +15,7 @@ interface Announcement {
   published_at: string;
 }
 
-export default function AnnouncementsManager() {
+export default function AnnouncementsPage() {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editing, setEditing] = useState<Announcement | null>(null);
@@ -40,6 +40,7 @@ export default function AnnouncementsManager() {
       .order('published_at', { ascending: false });
 
     if (error) {
+      console.error('Fetch error:', error);
       toast.error('Failed to fetch announcements');
     } else {
       setAnnouncements(data || []);
@@ -50,42 +51,68 @@ export default function AnnouncementsManager() {
     e.preventDefault();
     setLoading(true);
 
-    if (editing) {
-      const { error } = await supabase
-        .from('announcements')
-        .update(formData)
-        .eq('id', editing.id);
+    try {
+      if (editing) {
+        // Update existing announcement
+        const { error } = await supabase
+          .from('announcements')
+          .update({
+            title: formData.title,
+            content: formData.content,
+            category: formData.category,
+            is_pinned: formData.is_pinned,
+          })
+          .eq('id', editing.id);
 
-      if (error) {
-        toast.error('Failed to update');
+        if (error) {
+          console.error('Update error:', error);
+          toast.error('Failed to update: ' + error.message);
+        } else {
+          toast.success('Announcement updated!');
+          setIsModalOpen(false);
+          fetchAnnouncements();
+        }
       } else {
-        toast.success('Announcement updated!');
-        setIsModalOpen(false);
-        fetchAnnouncements();
-      }
-    } else {
-      const { error } = await supabase
-        .from('announcements')
-        .insert([{ ...formData, published_at: new Date().toISOString() }]);
+        // Insert new announcement (without created_by field)
+        const { error } = await supabase
+          .from('announcements')
+          .insert([{ 
+            title: formData.title,
+            content: formData.content,
+            category: formData.category,
+            is_pinned: formData.is_pinned,
+            published_at: new Date().toISOString()
+          }]);
 
-      if (error) {
-        toast.error('Failed to create');
-      } else {
-        toast.success('Announcement created!');
-        setIsModalOpen(false);
-        fetchAnnouncements();
+        if (error) {
+          console.error('Insert error:', error);
+          toast.error('Failed to create: ' + error.message);
+        } else {
+          toast.success('Announcement created!');
+          setIsModalOpen(false);
+          fetchAnnouncements();
+        }
       }
+    } catch (err) {
+      console.error('Submit error:', err);
+      toast.error('An unexpected error occurred');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm('Are you sure?')) {
-      const { error } = await supabase.from('announcements').delete().eq('id', id);
+    if (confirm('Are you sure you want to delete this announcement?')) {
+      const { error } = await supabase
+        .from('announcements')
+        .delete()
+        .eq('id', id);
+      
       if (error) {
+        console.error('Delete error:', error);
         toast.error('Failed to delete');
       } else {
-        toast.success('Deleted!');
+        toast.success('Deleted successfully!');
         fetchAnnouncements();
       }
     }
@@ -98,6 +125,7 @@ export default function AnnouncementsManager() {
       .eq('id', id);
 
     if (error) {
+      console.error('Pin error:', error);
       toast.error('Failed to update pin');
     } else {
       toast.success(currentPin ? 'Unpinned' : 'Pinned');
@@ -105,51 +133,69 @@ export default function AnnouncementsManager() {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-serif font-bold text-slate-800">Announcements</h1>
-          <button
-            onClick={() => {
-              setEditing(null);
-              setFormData({ title: '', content: '', category: 'general', is_pinned: false });
-              setIsModalOpen(true);
-            }}
-            className="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg flex items-center gap-2"
-          >
-            <Plus className="w-4 h-4" /> New Announcement
-          </button>
-        </div>
+  const getCategoryColor = (category: string) => {
+    switch(category) {
+      case 'academic': return 'bg-blue-100 text-blue-700';
+      case 'exam': return 'bg-red-100 text-red-700';
+      case 'event': return 'bg-purple-100 text-purple-700';
+      case 'holiday': return 'bg-green-100 text-green-700';
+      default: return 'bg-gray-100 text-gray-700';
+    }
+  };
 
-        <div className="grid gap-4">
-          {announcements.map((announcement, idx) => (
+  return (
+    <div className="min-h-screen">
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-3xl font-serif font-bold text-slate-800">Announcements</h1>
+          <p className="text-gray-600 mt-1">Manage school news and updates</p>
+        </div>
+        <button
+          onClick={() => {
+            setEditing(null);
+            setFormData({ title: '', content: '', category: 'general', is_pinned: false });
+            setIsModalOpen(true);
+          }}
+          className="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition"
+        >
+          <Plus className="w-4 h-4" /> New Announcement
+        </button>
+      </div>
+
+      <div className="grid gap-4">
+        {announcements.length === 0 ? (
+          <div className="bg-white rounded-lg p-12 text-center text-gray-500">
+            No announcements yet. Click "New Announcement" to create one.
+          </div>
+        ) : (
+          announcements.map((announcement, idx) => (
             <motion.div
               key={announcement.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.05 }}
-              className="bg-white rounded-lg p-6 shadow-sm border border-gray-100"
+              className="bg-white rounded-lg p-6 shadow-sm border border-gray-100 hover:shadow-md transition"
             >
               <div className="flex justify-between items-start">
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
+                  <div className="flex items-center gap-2 mb-3 flex-wrap">
                     {announcement.is_pinned && (
                       <span className="bg-amber-100 text-amber-700 text-xs px-2 py-1 rounded-full flex items-center gap-1">
                         <Pin className="w-3 h-3" /> Pinned
                       </span>
                     )}
-                    <span className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">
-                      {announcement.category}
+                    <span className={`text-xs px-2 py-1 rounded-full ${getCategoryColor(announcement.category)}`}>
+                      {announcement.category.toUpperCase()}
                     </span>
-                    <span className="text-xs text-gray-400">
+                    <span className="text-xs text-gray-400 flex items-center gap-1">
+                      <Calendar className="w-3 h-3" />
                       {new Date(announcement.published_at).toLocaleDateString()}
                     </span>
                   </div>
                   <h3 className="text-xl font-semibold text-slate-800 mb-2">{announcement.title}</h3>
                   <p className="text-gray-600">{announcement.content}</p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 ml-4">
                   <button
                     onClick={() => handlePin(announcement.id, announcement.is_pinned)}
                     className="p-2 hover:bg-gray-100 rounded-lg transition"
@@ -181,23 +227,25 @@ export default function AnnouncementsManager() {
                 </div>
               </div>
             </motion.div>
-          ))}
-        </div>
+          ))
+        )}
+      </div>
 
-        {/* Modal */}
-        {isModalOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="bg-white rounded-2xl max-w-2xl w-full p-6"
-            >
+      {/* Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+          >
+            <div className="p-6">
               <h2 className="text-2xl font-serif font-bold mb-4">
                 {editing ? 'Edit Announcement' : 'New Announcement'}
               </h2>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1">Title</label>
+                  <label className="block text-sm font-medium mb-1">Title *</label>
                   <input
                     type="text"
                     value={formData.title}
@@ -221,11 +269,11 @@ export default function AnnouncementsManager() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Content</label>
+                  <label className="block text-sm font-medium mb-1">Content *</label>
                   <textarea
                     value={formData.content}
                     onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                    rows={5}
+                    rows={6}
                     className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-amber-500"
                     required
                   />
@@ -236,33 +284,33 @@ export default function AnnouncementsManager() {
                     id="pinned"
                     checked={formData.is_pinned}
                     onChange={(e) => setFormData({ ...formData, is_pinned: e.target.checked })}
-                    className="w-4 h-4"
+                    className="w-4 h-4 rounded focus:ring-amber-500"
                   />
                   <label htmlFor="pinned" className="text-sm font-medium">
                     Pin this announcement (shows at top)
                   </label>
                 </div>
-                <div className="flex gap-3 justify-end">
+                <div className="flex gap-3 justify-end pt-4">
                   <button
                     type="button"
                     onClick={() => setIsModalOpen(false)}
-                    className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+                    className="px-4 py-2 border rounded-lg hover:bg-gray-50 transition"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={loading}
-                    className="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 disabled:opacity-50"
+                    className="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition disabled:opacity-50"
                   >
-                    {loading ? 'Saving...' : 'Save'}
+                    {loading ? 'Saving...' : 'Save Announcement'}
                   </button>
                 </div>
               </form>
-            </motion.div>
-          </div>
-        )}
-      </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }

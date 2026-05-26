@@ -1,294 +1,401 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { GraduationCap, Calendar, Megaphone, Users, ArrowRight, CheckCircle, BookOpen, Award } from 'lucide-react';
 import Link from 'next/link';
+import { createClient } from '@/lib/supabase';
 import ChatWidget from '@/components/ChatWidget';
-
-const fadeInUp = {
-  initial: { opacity: 0, y: 30 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.6 }
-};
-
-const stats = [
-  { label: 'Years of Excellence', value: '25+' },
-  { label: 'Students Enrolled', value: '1,200+' },
-  { label: 'Qualified Staff', value: '45+' },
-  { label: 'Success Rate', value: '98%' },
-];
-
-const features = [
-  { icon: GraduationCap, title: 'Quality Education', description: 'Modern curriculum with experienced educators preparing students for global challenges' },
-  { icon: Calendar, title: 'Events & Activities', description: 'Rich extracurricular programs including sports, arts, and academic competitions' },
-  { icon: Megaphone, title: 'Instant Updates', description: 'Real-time announcements and news via our digital communication system' },
-  { icon: Users, title: 'Parent Portal', description: 'Stay connected with your child\'s academic progress and school activities' },
-];
-
-const announcements = [
-  {
-    title: '2025-2026 Admissions Open',
-    date: 'December 25, 2025',
-    description: 'Applications are now open for the upcoming academic year. Limited spaces available.',
-    type: 'important'
-  },
-  {
-    title: 'End of Term Examinations',
-    date: 'December 20, 2025',
-    description: 'End of term exams will begin on January 10th, 2026. All students are advised to prepare adequately.',
-    type: 'academic'
-  },
-  {
-    title: 'Parent-Teacher Conference',
-    date: 'January 15, 2026',
-    description: 'Annual parent-teacher conference scheduled for January 15th, 2026 at the school auditorium.',
-    type: 'event'
-  }
-];
-
-const upcomingEvents = [
-  { name: 'Resumption Date', date: 'Jan 8, 2026', type: 'academic' },
-  { name: 'Inter-House Sports', date: 'Jan 20, 2026', type: 'sports' },
-  { name: 'Open Day', date: 'Feb 5, 2026', type: 'event' },
-  { name: 'Graduation Ceremony', date: 'Mar 15, 2026', type: 'ceremony' },
-];
+import HeroSection from '@/components/HeroSection';
+import { 
+  GraduationCap, Calendar, Megaphone, Users, 
+  ArrowRight, Star, BookOpen, Heart, User, Image as ImageIcon
+} from 'lucide-react';
 
 export default function Home() {
+  const [announcements, setAnnouncements] = useState([]);
+  const [events, setEvents] = useState([]);
+  const [galleryImages, setGalleryImages] = useState([]);
+  const [staffPreview, setStaffPreview] = useState([]);
+  const supabase = createClient();
+
+  useEffect(() => {
+    fetchAnnouncements();
+    fetchEvents();
+    fetchGalleryPreview();
+    fetchStaffPreview();
+  }, []);
+
+  const fetchAnnouncements = async () => {
+    const { data } = await supabase
+      .from('announcements')
+      .select('*')
+      .order('is_pinned', { ascending: false })
+      .order('published_at', { ascending: false })
+      .limit(3);
+    
+    if (data) setAnnouncements(data);
+  };
+
+  const fetchEvents = async () => {
+    const { data } = await supabase
+      .from('events')
+      .select('*')
+      .gte('event_date', new Date().toISOString().split('T')[0])
+      .order('event_date', { ascending: true })
+      .limit(3);
+    
+    if (data) setEvents(data);
+  };
+
+  const fetchGalleryPreview = async () => {
+    const { data } = await supabase
+      .from('gallery')
+      .select('*')
+      .order('uploaded_at', { ascending: false })
+      .limit(4);
+    if (data) setGalleryImages(data);
+  };
+
+  const fetchStaffPreview = async () => {
+    const { data } = await supabase
+      .from('staff')
+      .select('*')
+      .eq('is_active', true)
+      .order('order_index', { ascending: true })
+      .limit(3);
+    if (data) setStaffPreview(data);
+  };
+
+  const features = [
+    { icon: BookOpen, title: 'Modern Curriculum', description: 'Cambridge and National curriculum with digital integration', color: 'from-blue-500 to-blue-600' },
+    { icon: Users, title: 'Expert Teachers', description: 'Qualified educators dedicated to student success', color: 'from-green-500 to-green-600' },
+    { icon: Star, title: 'Holistic Development', description: 'Sports, arts, and character development programs', color: 'from-purple-500 to-purple-600' },
+    { icon: Heart, title: 'Safe Environment', description: 'Secure and nurturing learning environment', color: 'from-red-500 to-red-600' },
+  ];
+
   return (
     <>
-      <main className="min-h-screen">
-        {/* Hero Section */}
-        <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
-          <div className="absolute inset-0 opacity-20">
-            <div className="absolute top-20 left-10 w-72 h-72 bg-amber-500 rounded-full mix-blend-multiply filter blur-xl animate-float" />
-            <div className="absolute bottom-20 right-10 w-72 h-72 bg-amber-600 rounded-full mix-blend-multiply filter blur-xl animate-float animation-delay-2000" />
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-amber-400 rounded-full mix-blend-multiply filter blur-2xl animate-float animation-delay-4000" />
-          </div>
-          
-          <div className="relative container mx-auto px-6 py-24 md:py-32">
-            <motion.div {...fadeInUp} className="text-center max-w-5xl mx-auto">
-              <motion.div 
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ duration: 0.5 }}
-                className="inline-block mb-6"
-              >
-                <span className="bg-amber-500/20 backdrop-blur-sm text-amber-300 px-4 py-2 rounded-full text-sm font-semibold">
-                  Excellence in Education Since 1998
-                </span>
-              </motion.div>
-              <h1 className="text-5xl md:text-7xl font-serif font-bold mb-6 leading-tight">
-                Excellence in Education,
-                <span className="text-amber-400"> Digital by Design</span>
-              </h1>
-              <p className="text-xl text-gray-300 mb-10 max-w-3xl mx-auto leading-relaxed">
-                Welcome to St. Bernard Secondary School, Molyko - Buea. Where tradition meets innovation in shaping tomorrow's leaders through quality education and modern technology.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/admissions" className="bg-amber-500 hover:bg-amber-600 text-white px-8 py-3 rounded-full font-semibold transition-all transform hover:scale-105 inline-flex items-center gap-2 shadow-lg">
-                  Apply Now <ArrowRight className="w-4 h-4" />
-                </Link>
-                <Link href="/about" className="border-2 border-white hover:bg-white hover:text-slate-900 px-8 py-3 rounded-full font-semibold transition-all transform hover:scale-105">
-                  Learn More
-                </Link>
-              </div>
-            </motion.div>
-
-            {/* Stats */}
-            <motion.div 
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.6 }}
-              className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-20"
-            >
-              {stats.map((stat, idx) => (
-                <motion.div 
-                  key={idx} 
-                  className="text-center backdrop-blur-sm bg-white/5 rounded-2xl p-6 border border-white/10"
-                  whileHover={{ scale: 1.05, y: -5 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <div className="text-4xl md:text-5xl font-bold text-amber-400 mb-2">{stat.value}</div>
-                  <div className="text-sm text-gray-300 font-medium">{stat.label}</div>
-                </motion.div>
-              ))}
-            </motion.div>
-          </div>
-        </section>
-
-        {/* Features Section */}
-        <section className="py-20 bg-white">
-          <div className="container mx-auto px-6">
-            <motion.div {...fadeInUp} className="text-center mb-12">
-              <h2 className="text-4xl md:text-5xl font-serif font-bold text-slate-800 mb-4">
-                Why Choose St. Bernard?
-              </h2>
-              <p className="text-gray-600 text-lg max-w-3xl mx-auto">
-                We provide a holistic education experience that prepares students for the digital age
-              </p>
-            </motion.div>
-            
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-              {features.map((feature, idx) => (
-                <motion.div
-                  key={idx}
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: idx * 0.1 }}
-                  whileHover={{ y: -10 }}
-                  className="bg-gradient-to-br from-gray-50 to-white rounded-2xl p-6 text-center hover:shadow-2xl transition-all duration-300 border border-gray-100 group"
-                >
-                  <div className="w-20 h-20 bg-gradient-to-br from-amber-100 to-amber-50 rounded-2xl flex items-center justify-center mx-auto mb-5 group-hover:scale-110 transition-transform duration-300">
-                    <feature.icon className="w-10 h-10 text-amber-600" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-slate-800 mb-3">{feature.title}</h3>
-                  <p className="text-gray-600 leading-relaxed">{feature.description}</p>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Announcements Section */}
-        <section className="py-20 bg-gradient-to-br from-slate-50 to-gray-100">
-          <div className="container mx-auto px-6">
-            <motion.div {...fadeInUp} className="text-center mb-12">
-              <h2 className="text-4xl md:text-5xl font-serif font-bold text-slate-800 mb-4">
-                Latest Announcements
-              </h2>
-              <p className="text-gray-600 text-lg max-w-3xl mx-auto">
-                Stay updated with the latest news and events from St. Bernard Secondary School
-              </p>
-            </motion.div>
-
-            <div className="grid md:grid-cols-3 gap-6">
-              {announcements.map((announcement, idx) => (
-                <motion.div
-                  key={idx}
-                  initial={{ opacity: 0, x: -30 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: idx * 0.1 }}
-                  whileHover={{ y: -5 }}
-                  className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all"
-                >
-                  <div className={`h-2 ${
-                    announcement.type === 'important' ? 'bg-red-500' :
-                    announcement.type === 'academic' ? 'bg-blue-500' : 'bg-green-500'
-                  }`} />
-                  <div className="p-6">
-                    <div className="flex justify-between items-start mb-3">
-                      <h3 className="text-xl font-semibold text-slate-800">{announcement.title}</h3>
-                    </div>
-                    <p className="text-gray-600 mb-4 leading-relaxed">{announcement.description}</p>
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-amber-600 font-medium">{announcement.date}</span>
-                      <Link href="/announcements" className="text-slate-600 hover:text-amber-600 transition">Read More →</Link>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Upcoming Events Section */}
-        <section className="py-20 bg-white">
-          <div className="container mx-auto px-6">
-            <motion.div {...fadeInUp} className="text-center mb-12">
-              <h2 className="text-4xl md:text-5xl font-serif font-bold text-slate-800 mb-4">
-                Upcoming Events
-              </h2>
-              <p className="text-gray-600 text-lg max-w-3xl mx-auto">
-                Mark your calendars for these important dates
-              </p>
-            </motion.div>
-
-            <div className="grid md:grid-cols-4 gap-4">
-              {upcomingEvents.map((event, idx) => (
-                <motion.div
-                  key={idx}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: idx * 0.1 }}
-                  whileHover={{ scale: 1.05 }}
-                  className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl p-5 text-center text-white"
-                >
-                  <div className="text-2xl font-bold text-amber-400 mb-2">{event.name}</div>
-                  <div className="text-sm text-gray-300">{event.date}</div>
-                  <div className="mt-3 text-xs uppercase tracking-wide bg-white/10 inline-block px-3 py-1 rounded-full">
-                    {event.type}
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Call to Action - Admissions */}
-        <section className="bg-gradient-to-r from-amber-500 to-amber-600 py-20">
-          <div className="container mx-auto px-6 text-center">
-            <motion.div {...fadeInUp}>
-              <div className="inline-block mb-6">
-                <BookOpen className="w-16 h-16 text-white opacity-80" />
-              </div>
-              <h2 className="text-4xl md:text-5xl font-serif font-bold text-white mb-4">
-                Ready to Join Our Family?
-              </h2>
-              <p className="text-amber-100 mb-8 text-lg max-w-2xl mx-auto">
-                Applications for the 2025-2026 academic year are now open. Take the first step towards excellence.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/admissions" className="inline-flex items-center gap-2 bg-white text-amber-600 px-8 py-3 rounded-full font-semibold hover:shadow-xl transition-all transform hover:scale-105">
-                  Start Application <ArrowRight className="w-4 h-4" />
-                </Link>
-                <Link href="/contact" className="inline-flex items-center gap-2 border-2 border-white text-white px-8 py-3 rounded-full font-semibold hover:bg-white hover:text-amber-600 transition-all">
-                  Contact Us <Award className="w-4 h-4" />
-                </Link>
-              </div>
-            </motion.div>
-          </div>
-        </section>
-
-        {/* Footer */}
-        <footer className="bg-slate-900 text-white py-12">
-          <div className="container mx-auto px-6">
-            <div className="grid md:grid-cols-4 gap-8">
-              <div>
-                <h3 className="text-2xl font-serif font-bold mb-4">St. Bernard SS</h3>
-                <p className="text-gray-400 text-sm">Excellence in Education, Digital by Design</p>
-              </div>
-              <div>
-                <h4 className="font-semibold mb-4">Quick Links</h4>
-                <ul className="space-y-2 text-sm text-gray-400">
-                  <li><Link href="/admissions" className="hover:text-amber-400 transition">Admissions</Link></li>
-                  <li><Link href="/about" className="hover:text-amber-400 transition">About Us</Link></li>
-                  <li><Link href="/contact" className="hover:text-amber-400 transition">Contact</Link></li>
-                </ul>
-              </div>
-              <div>
-                <h4 className="font-semibold mb-4">Contact Info</h4>
-                <ul className="space-y-2 text-sm text-gray-400">
-                  <li>Molyko - Buea</li>
-                  <li>South West Region</li>
-                  <li>+237 671657357</li>
-                </ul>
-              </div>
-              <div>
-                <h4 className="font-semibold mb-4">Follow Us</h4>
-                <div className="flex space-x-4">
-                  <a href="#" className="text-gray-400 hover:text-amber-400 transition">Facebook</a>
-                  <a href="#" className="text-gray-400 hover:text-amber-400 transition">Twitter</a>
-                  <a href="#" className="text-gray-400 hover:text-amber-400 transition">Instagram</a>
-                </div>
-              </div>
-            </div>
-            <div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm text-gray-400">
-              © 2025 St. Bernard Secondary School. All rights reserved.
-            </div>
-          </div>
-        </footer>
-      </main>
+      <HeroSection />
       
+      {/* Features Section */}
+      <section className="py-24 bg-white">
+        <div className="container mx-auto px-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-4xl md:text-5xl font-serif font-bold text-slate-800 mb-4">
+              Why Choose <span className="text-gradient">St. Bernard?</span>
+            </h2>
+            <p className="text-gray-600 max-w-2xl mx-auto text-lg">
+              We provide a holistic education experience that prepares students for the digital age
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {features.map((feature, idx) => (
+              <motion.div
+                key={idx}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: idx * 0.1 }}
+                whileHover={{ y: -10 }}
+                className="group relative bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-500 border border-gray-100"
+              >
+                <div className={`absolute inset-0 bg-gradient-to-br ${feature.color} opacity-0 group-hover:opacity-5 rounded-2xl transition-opacity duration-500`} />
+                <div className={`w-16 h-16 bg-gradient-to-br ${feature.color} rounded-xl flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                  <feature.icon className="w-8 h-8 text-white" />
+                </div>
+                <h3 className="text-xl font-semibold text-slate-800 mb-3">{feature.title}</h3>
+                <p className="text-gray-600 leading-relaxed">{feature.description}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Announcements & Events Section */}
+      <section className="py-24 bg-gradient-light">
+        <div className="container mx-auto px-6">
+          <div className="grid lg:grid-cols-2 gap-12">
+            {/* Announcements */}
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+            >
+              <div className="flex items-center gap-3 mb-8">
+                <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center">
+                  <Megaphone className="w-6 h-6 text-amber-600" />
+                </div>
+                <h2 className="text-3xl font-serif font-bold text-slate-800">Latest News</h2>
+              </div>
+              <div className="space-y-4">
+                {announcements.length === 0 ? (
+                  <p className="text-gray-500 text-center py-8">No announcements yet.</p>
+                ) : (
+                  announcements.map((announcement: any, idx: number) => (
+                    <motion.div
+                      key={announcement.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: idx * 0.1 }}
+                      className="bg-white rounded-xl p-6 shadow-md hover:shadow-xl transition-all duration-300 border-l-4 border-amber-500"
+                    >
+                      <div className="flex items-center gap-2 mb-2">
+                        {announcement.is_pinned && (
+                          <span className="text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded-full">Pinned</span>
+                        )}
+                        <span className="text-xs text-gray-500">
+                          {new Date(announcement.published_at).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <h3 className="text-lg font-semibold text-slate-800 mb-2">{announcement.title}</h3>
+                      <p className="text-gray-600 line-clamp-2">{announcement.content}</p>
+                    </motion.div>
+                  ))
+                )}
+              </div>
+              <Link
+                href="/announcements"
+                className="inline-flex items-center gap-2 text-amber-600 font-semibold mt-6 hover:gap-3 transition-all"
+              >
+                View all announcements <ArrowRight className="w-4 h-4" />
+              </Link>
+            </motion.div>
+
+            {/* Events */}
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+            >
+              <div className="flex items-center gap-3 mb-8">
+                <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center">
+                  <Calendar className="w-6 h-6 text-amber-600" />
+                </div>
+                <h2 className="text-3xl font-serif font-bold text-slate-800">Upcoming Events</h2>
+              </div>
+              <div className="space-y-4">
+                {events.length === 0 ? (
+                  <p className="text-gray-500 text-center py-8">No upcoming events.</p>
+                ) : (
+                  events.map((event: any, idx: number) => (
+                    <motion.div
+                      key={event.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: idx * 0.1 }}
+                      className="bg-white rounded-xl p-6 shadow-md hover:shadow-xl transition-all duration-300"
+                    >
+                      <div className="flex gap-4">
+                        <div className="text-center min-w-[60px]">
+                          <div className="text-2xl font-bold text-amber-600">
+                            {new Date(event.event_date).getDate()}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {new Date(event.event_date).toLocaleString('default', { month: 'short' })}
+                          </div>
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-lg font-semibold text-slate-800 mb-2">{event.title}</h3>
+                          {event.description && (
+                            <p className="text-gray-600 text-sm mb-2">{event.description}</p>
+                          )}
+                          {event.location && (
+                            <p className="text-xs text-gray-500">📍 {event.location}</p>
+                          )}
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))
+                )}
+              </div>
+              <Link
+                href="/events"
+                className="inline-flex items-center gap-2 text-amber-600 font-semibold mt-6 hover:gap-3 transition-all"
+              >
+                View calendar <ArrowRight className="w-4 h-4" />
+              </Link>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Gallery Preview Section */}
+      <section className="py-24 bg-white">
+        <div className="container mx-auto px-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-4xl font-serif font-bold text-slate-800 mb-4">
+              School <span className="text-gradient">Gallery</span>
+            </h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Capturing precious moments and memories from school life
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            {galleryImages.length === 0 ? (
+              <div className="col-span-full text-center py-12 bg-gray-50 rounded-xl">
+                <ImageIcon className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+                <p className="text-gray-500">Gallery coming soon</p>
+              </div>
+            ) : (
+              galleryImages.map((image: any, idx: number) => (
+                <motion.div
+                  key={image.id}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.1 }}
+                  className="relative h-48 rounded-xl overflow-hidden group cursor-pointer"
+                  onClick={() => window.location.href = '/gallery'}
+                >
+                  <img
+                    src={image.image_url}
+                    alt={image.title || 'Gallery image'}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                    <span className="text-white text-sm font-semibold bg-amber-500 px-3 py-1 rounded-full">
+                      View Photo
+                    </span>
+                  </div>
+                </motion.div>
+              ))
+            )}
+          </div>
+
+          {galleryImages.length > 0 && (
+            <div className="text-center">
+              <Link
+                href="/gallery"
+                className="inline-flex items-center gap-2 text-amber-600 font-semibold hover:gap-3 transition-all"
+              >
+                View Full Gallery <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Staff Preview Section */}
+      <section className="py-24 bg-gradient-light">
+        <div className="container mx-auto px-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-4xl font-serif font-bold text-slate-800 mb-4">
+              Meet Our <span className="text-gradient">Leadership</span>
+            </h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Dedicated educators shaping the future of our students
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {staffPreview.length === 0 ? (
+              <div className="col-span-full text-center py-12 bg-white rounded-xl">
+                <Users className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+                <p className="text-gray-500">Staff directory coming soon</p>
+              </div>
+            ) : (
+              staffPreview.map((member: any, idx: number) => (
+                <motion.div
+                  key={member.id}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.1 }}
+                  whileHover={{ y: -8 }}
+                  className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300"
+                >
+                  <div className="h-56 bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center relative overflow-hidden">
+                    {member.photo_url ? (
+                      <img
+                        src={member.photo_url}
+                        alt={member.full_name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <User className="w-16 h-16 text-white/30" />
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                  </div>
+                  <div className="p-6 text-center">
+                    <h3 className="text-xl font-bold text-slate-800 mb-1">{member.full_name}</h3>
+                    <p className="text-amber-600 font-semibold text-sm mb-3">{member.position}</p>
+                    {member.department && (
+                      <span className="inline-block bg-amber-100 text-amber-700 text-xs px-2 py-1 rounded-full mb-3">
+                        {member.department}
+                      </span>
+                    )}
+                    {member.bio && (
+                      <p className="text-gray-600 text-sm line-clamp-2">{member.bio}</p>
+                    )}
+                  </div>
+                </motion.div>
+              ))
+            )}
+          </div>
+
+          {staffPreview.length > 0 && (
+            <div className="text-center mt-10">
+              <Link
+                href="/staff"
+                className="inline-flex items-center gap-2 text-amber-600 font-semibold hover:gap-3 transition-all"
+              >
+                View All Staff <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="relative py-24 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-gold">
+          <div className="absolute inset-0 bg-black/20"></div>
+          <div className="absolute top-0 left-0 w-96 h-96 bg-white/10 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl"></div>
+        </div>
+        
+        <div className="relative container mx-auto px-6 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="text-4xl md:text-5xl font-serif font-bold text-white mb-4">
+              Ready to Join Our Family?
+            </h2>
+            <p className="text-amber-100 text-lg mb-8 max-w-2xl mx-auto">
+              Applications for the upcoming academic year are now open. 
+              Take the first step towards excellence.
+            </p>
+            <Link
+              href="/admissions"
+              className="inline-flex items-center gap-2 bg-white text-amber-600 px-8 py-3 rounded-full font-semibold hover:shadow-2xl transition-all transform hover:scale-105"
+            >
+              Start Application <ArrowRight className="w-4 h-4" />
+            </Link>
+          </motion.div>
+        </div>
+      </section>
+
       <ChatWidget />
     </>
   );

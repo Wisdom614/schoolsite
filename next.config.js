@@ -1,21 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ['supabase.co', 'images.unsplash.com', 'localhost'],
-    unoptimized: process.env.NODE_ENV === 'development',
+    domains: ['images.unsplash.com', 'supabase.co'],
   },
-  swcMinify: true,
-  eslint: {
-    ignoreDuringBuilds: true, // Temporarily ignore ESLint during build
-  },
-  typescript: {
-    ignoreBuildErrors: true, // Temporarily ignore TS errors during build
-  },
-  output: 'standalone', // Optimize for Vercel deployment
-  experimental: {
-    serverActions: {
-      allowedOrigins: ['localhost:3000', 'schoolsite-hazel.vercel.app'],
-    },
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
   },
 }
 
