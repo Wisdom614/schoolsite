@@ -151,3 +151,35 @@
 .bg-gradient-primary {
   background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
 }
+
+/* Mobile optimizations for chat */
+@media (max-width: 640px) {
+  /* Increase touch targets */
+  button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Better chat scrolling */
+  .overflow-y-auto {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Prevent zoom on input focus */
+  input, textarea {
+    font-size: 16px;
+  }
+  
+  /* Smooth animations */
+  .mobile-chat-window {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+/* Desktop styles */
+@media (min-width: 641px) {
+  .mobile-chat-window {
+    width: 400px;
+    max-width: 90vw;
+  }
+}
