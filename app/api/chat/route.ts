@@ -79,7 +79,7 @@ We recommend registering early to avoid late fees.`,
   // General
   location: `**Our Location**
 
-St. Bernard Secondary School is located in Molyko, Buea, South West Region of Cameroon.
+St. Bernard Secondary School is located in Molyko, Buea, opposite orange Cameroon office South West Region of Cameroon.
 
 We are situated near the main road, easily accessible by taxi or personal vehicle. Ample parking is available on campus.`,
   
@@ -182,7 +182,7 @@ Our team will assist you promptly.`
     }
     
     // For unrecognized questions, use AI with professional prompt
-    const professionalPrompt = `You are BEWISE AI, a professional assistant for St. Bernard Secondary School in Molyko - Buea, Cameroon.
+    const professionalPrompt = `You are BEWISE AI, a professional assistant for St. Bernard Secondary School in Molyko - Buea, opposite orange office Cameroon.
 
 Your communication style:
 • Professional and warm
@@ -192,7 +192,7 @@ Your communication style:
 • Be helpful and accurate
 
 School facts you know:
-- Location: Molyko - Buea, South West Region, Cameroon
+- Location: Molyko, just opposite Orange office - Buea, South West Region, Cameroon
 - Contact: +237 671 657 357, info@stbernard.edu.cm
 - Hours: Monday-Friday 7:30 AM - 3:30 PM, Saturday 8 AM - 12 PM
 - GCE Programme: Ordinary Level (Forms 1-5) and Advanced Level (Lower/Upper Sixth)
