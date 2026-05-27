@@ -73,9 +73,7 @@ export default function Navbar() {
                 </div>
               )}
               <div>
-                <h1 className="font-serif font-bold text-xl text-slate-800">
-                  {schoolSettings?.school_name || 'St. Bernard'}
-                </h1>
+               
               </div>
             </Link>
 
