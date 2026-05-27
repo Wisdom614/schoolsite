@@ -76,7 +76,6 @@ export default function Navbar() {
                 <h1 className="font-serif font-bold text-xl text-slate-800">
                   {schoolSettings?.school_name || 'St. Bernard'}
                 </h1>
-                <p className="text-xs text-gray-500 -mt-1">Secondary School</p>
               </div>
             </Link>
 
