@@ -2,17 +2,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase';
 
 export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const supabase = createClient();
     
     // Fetch admission data
     const { data, error } = await supabase
       .from('admissions')
       .select('*')
-      .eq('reference_id', params.id)
+      .eq('reference_id', id)
       .single();
     
     if (error || !data) {
@@ -20,7 +21,7 @@ export async function GET(
     }
     
     // Generate PDF
-    const pdfResponse = await fetch(`${req.nextUrl.origin}/api/admissions/pdf`, {
+    const pdfResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/admissions/pdf`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
